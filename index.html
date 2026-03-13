@@ -138,6 +138,9 @@
     align-items: center;
     padding: 4rem 1rem 6rem;
     background: linear-gradient(180deg, var(--abyss) 0%, var(--deep) 100%);
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .game-section h2 {
@@ -162,8 +165,15 @@
     background: var(--abyss);
     box-shadow: 0 0 60px rgba(0,229,255,0.06), inset 0 0 80px rgba(0,0,0,0.5);
     display: block;
-    max-width: 100%;
+    width: 100%;
+    max-width: 800px;
+    height: auto;
+    aspect-ratio: 2 / 1;
     cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   .controls-hint {
@@ -176,8 +186,8 @@
   /* === GAME WRAPPER (for overlay positioning) === */
   .game-wrapper {
     position: relative;
-    display: inline-block;
-    max-width: 100%;
+    width: 100%;
+    max-width: 800px;
   }
 
   /* === SCORE SUBMIT OVERLAY === */
@@ -315,6 +325,41 @@
     letter-spacing: 0.1em;
   }
 
+  /* === TORPEDO BUTTON === */
+  .torpedo-btn {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(42,138,74,0.5);
+    border: 2px solid var(--bio);
+    color: var(--bio);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 12px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    z-index: 5;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: background 0.15s, opacity 0.15s;
+    min-width: 48px;
+    min-height: 48px;
+  }
+  .torpedo-btn:active {
+    background: rgba(57,255,143,0.35);
+  }
+  .torpedo-btn.empty {
+    opacity: 0.25;
+    border-color: #4a6a7a;
+    color: #4a6a7a;
+    pointer-events: none;
+  }
+
   /* === FOOTER === */
   footer {
     text-align: center;
@@ -323,6 +368,25 @@
     font-size: 0.7rem;
     letter-spacing: 0.15em;
     background: var(--deep);
+  }
+
+  /* === MOBILE === */
+  @media (max-width: 600px) {
+    .game-section {
+      padding: 2rem 0.5rem 3rem;
+    }
+    #gameCanvas {
+      border-radius: 4px;
+    }
+    .controls-hint {
+      font-size: 0.65rem;
+    }
+    .torpedo-btn {
+      bottom: 8px;
+      right: 8px;
+      padding: 14px 20px;
+      font-size: 0.85rem;
+    }
   }
 </style>
 </head>
@@ -353,8 +417,9 @@
       <button id="submitScore">LOG SCORE</button>
       <button class="skip-btn" id="skipScore">SKIP</button>
     </div>
+    <button id="torpedoBtn" class="torpedo-btn" style="display:none">TORPEDO</button>
   </div>
-  <p class="controls-hint">SPACE / TAP to dive &amp; surface &bull; [X] to fire torpedo &bull; avoid the abyss dwellers</p>
+  <p class="controls-hint">SPACE / TAP to dive &bull; SHIFT+SPACE for fast dive &bull; [X] or button to fire torpedo</p>
   <div class="leaderboard" id="leaderboard">
     <h3>LEADERBOARD</h3>
     <div id="leaderboardBody"></div>
@@ -386,26 +451,26 @@
   let anglers = [];
   let octopuses = [];
   let tentacles = [];
+  let lureBalls = [];
   let deathCause = '';
-  let lastSpaceTime = 0;
   let fastDiving = false;
   let fastDiveTimer = 0;
 
   // submarine
   const sub = { x: 120, y: H / 2, w: 54, h: 24, vy: 0, targetVy: 0 };
 
-  // leaderboard elements
+  // DOM elements
   const scoreOverlay = document.getElementById('scoreOverlay');
   const deathScoreEl = document.getElementById('deathScore');
   const playerNameInput = document.getElementById('playerName');
   const submitScoreBtn = document.getElementById('submitScore');
   const skipScoreBtn = document.getElementById('skipScore');
   const leaderboardBody = document.getElementById('leaderboardBody');
+  const torpedoBtn = document.getElementById('torpedoBtn');
 
   // input
   let pressing = false;
   let awaitingName = false;
-  let lastTapTime = 0;
 
   function onDown(e) {
     if (awaitingName) return;
@@ -417,25 +482,15 @@
   }
   function onUp(e) { pressing = false; }
 
-  canvas.addEventListener('pointerdown', e => {
-    const now = performance.now();
-    if (now - lastTapTime < 300 && gameState === 'running') {
-      fastDiving = true;
-      fastDiveTimer = 18;
-    }
-    lastTapTime = now;
-    onDown(e);
-  });
+  canvas.addEventListener('pointerdown', e => { onDown(e); });
   canvas.addEventListener('pointerup', onUp);
   document.addEventListener('keydown', e => {
     if (awaitingName) return;
     if (e.code === 'Space') {
-      const now = performance.now();
-      if (now - lastSpaceTime < 300 && gameState === 'running') {
+      if (e.shiftKey && gameState === 'running') {
         fastDiving = true;
         fastDiveTimer = 18;
       }
-      lastSpaceTime = now;
       onDown(e);
     }
     if (e.code === 'KeyX' && gameState === 'running') shootTorpedo();
@@ -444,17 +499,55 @@
     if (e.code === 'Space') onUp(e);
   });
 
-  // --- leaderboard ---
+  // torpedo button (mobile + always visible)
+  torpedoBtn.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (gameState === 'running') shootTorpedo();
+  });
+
+  // --- leaderboard (global via Firebase REST API) ---
+  // SETUP: Create a Firebase project, enable Realtime Database, set rules to allow
+  //   { "rules": { "leaderboard": { ".read": true, ".write": true } } }
+  // Then paste your database URL below (e.g. https://my-project-default-rtdb.firebaseio.com)
+  const FB_DB_URL = 'https://outerbass-7471e-default-rtdb.firebaseio.com';
+  const fbEnabled = FB_DB_URL && !FB_DB_URL.includes('YOUR_PROJECT');
+  let globalScores = null; // null = not loaded, [] = loaded empty
+
+  async function fetchGlobalScores() {
+    if (!fbEnabled) return;
+    try {
+      const res = await fetch(`${FB_DB_URL}/leaderboard.json`);
+      const data = await res.json();
+      if (!data) { globalScores = []; }
+      else { globalScores = Object.values(data).sort((a, b) => b.score - a.score).slice(0, 10); }
+      renderLeaderboard();
+    } catch { /* keep using local */ }
+  }
+
   function getScores() {
+    if (globalScores !== null) return globalScores;
     try { return JSON.parse(localStorage.getItem('ob_leaderboard') || '[]'); }
     catch { return []; }
   }
 
-  function saveScore(name, pts) {
-    const scores = getScores();
-    scores.push({ name, score: pts });
-    scores.sort((a, b) => b.score - a.score);
-    localStorage.setItem('ob_leaderboard', JSON.stringify(scores.slice(0, 10)));
+  async function saveScore(name, pts) {
+    // Always save locally
+    const locals = JSON.parse(localStorage.getItem('ob_leaderboard') || '[]');
+    locals.push({ name, score: pts });
+    locals.sort((a, b) => b.score - a.score);
+    localStorage.setItem('ob_leaderboard', JSON.stringify(locals.slice(0, 10)));
+    // Save to Firebase
+    if (fbEnabled) {
+      try {
+        await fetch(`${FB_DB_URL}/leaderboard.json`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, score: pts, ts: Date.now() })
+        });
+        await fetchGlobalScores();
+      } catch { /* silent */ }
+    }
   }
 
   function renderLeaderboard() {
@@ -486,9 +579,9 @@
     awaitingName = false;
   }
 
-  submitScoreBtn.addEventListener('click', () => {
+  submitScoreBtn.addEventListener('click', async () => {
     const name = playerNameInput.value.trim() || 'ANON';
-    saveScore(name, score);
+    await saveScore(name, score);
     renderLeaderboard();
     hideScoreOverlay();
   });
@@ -503,6 +596,7 @@
   });
 
   renderLeaderboard();
+  fetchGlobalScores();
 
   function shootTorpedo() {
     if (torpedoCount <= 0) return;
@@ -532,6 +626,7 @@
     anglers = [];
     octopuses = [];
     tentacles = [];
+    lureBalls = [];
     deathCause = '';
     fastDiving = false;
     fastDiveTimer = 0;
@@ -573,11 +668,16 @@
   function spawnAngler() {
     anglers.push({
       x: W + 60,
-      y: 40 + Math.random() * (H - 80),
-      size: 50 + Math.random() * 20,
-      speed: 1.8 + Math.random() * 0.6,
+      y: H / 2,
+      size: 55 + Math.random() * 15,
+      speed: 2,
       jawAngle: 0,
-      lurePhase: Math.random() * Math.PI * 2
+      lurePhase: Math.random() * Math.PI * 2,
+      bobPhase: Math.random() * Math.PI * 2,
+      bobCenter: 70 + Math.random() * (H - 140),
+      settled: false,
+      settleX: W * 0.62 + Math.random() * (W * 0.16),
+      shootScore: 0
     });
   }
 
@@ -873,6 +973,25 @@
     ctx.restore();
   }
 
+  function drawLureBall(lb) {
+    ctx.save();
+    const grd = ctx.createRadialGradient(lb.x, lb.y, 0, lb.x, lb.y, 20);
+    grd.addColorStop(0, 'rgba(200,255,100,0.6)');
+    grd.addColorStop(0.3, 'rgba(150,255,50,0.25)');
+    grd.addColorStop(1, 'rgba(150,255,50,0)');
+    ctx.fillStyle = grd;
+    ctx.fillRect(lb.x - 20, lb.y - 20, 40, 40);
+    ctx.fillStyle = '#eeffaa';
+    ctx.beginPath();
+    ctx.arc(lb.x, lb.y, lb.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(lb.x, lb.y, lb.r * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
   function drawOctopus(o) {
     ctx.save();
     ctx.translate(o.x, o.y);
@@ -1095,20 +1214,47 @@
         if (hit) torpedoes.splice(i, 1);
       }
 
-      // angler fish (5k+)
+      // angler fish boss (5k+, spawns one at a time)
       if (gameState !== 'running') { /* died above */ }
-      else if (score > 5000) {
-        const anglerRate = Math.max(300, 700 - Math.floor((score - 5000) / 500) * 30);
-        if (frameCount % anglerRate === 0) spawnAngler();
+      else if (score >= 5000 && anglers.length === 0) {
+        if (score === 5000 || (score > 5000 && score % 3000 === 0)) spawnAngler();
       }
 
       for (let i = anglers.length - 1; i >= 0; i--) {
         const a = anglers[i];
-        const dy = sub.y - a.y;
-        a.y += dy * 0.02;
-        a.x -= a.speed;
         a.jawAngle += 0.08;
         a.lurePhase += 0.06;
+        a.bobPhase += 0.03;
+
+        if (!a.settled) {
+          a.x -= a.speed * 1.5;
+          a.y += (a.bobCenter - a.y) * 0.03;
+          if (a.x <= a.settleX) {
+            a.settled = true;
+            a.shootScore = score;
+          }
+        } else {
+          // bounce up and down
+          a.y = a.bobCenter + Math.sin(a.bobPhase) * 70;
+          a.x -= 0.15; // very slow drift left
+
+          // shoot lure ball every 100m
+          if (gameState === 'running' && score - a.shootScore >= 100) {
+            a.shootScore = score;
+            const lureY = a.y - a.size * 0.5 + Math.sin(a.lurePhase) * 4;
+            const lureX = a.x + a.size * 0.25;
+            const dx = sub.x - lureX;
+            const dy = sub.y - lureY;
+            const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+            lureBalls.push({
+              x: lureX, y: lureY,
+              vx: (dx / dist) * 4.5,
+              vy: (dy / dist) * 4.5,
+              r: 5
+            });
+          }
+        }
+
         if (a.x < -80) { anglers.splice(i, 1); continue; }
         if (gameState !== 'running') continue;
         const dx = sub.x - a.x;
@@ -1116,6 +1262,25 @@
         const minDist = (sub.w * 0.35) + (a.size * 0.4);
         if (dx * dx + ddy * ddy < minDist * minDist) {
           deathCause = 'angler';
+          die();
+          break;
+        }
+      }
+
+      // lure ball projectiles
+      for (let i = lureBalls.length - 1; i >= 0; i--) {
+        const lb = lureBalls[i];
+        lb.x += lb.vx;
+        lb.y += lb.vy;
+        if (lb.x < -20 || lb.x > W + 20 || lb.y < -20 || lb.y > H + 20) {
+          lureBalls.splice(i, 1);
+          continue;
+        }
+        if (gameState !== 'running') continue;
+        const dx = sub.x - lb.x;
+        const dy = sub.y - lb.y;
+        if (dx * dx + dy * dy < (sub.w * 0.3 + lb.r) * (sub.w * 0.3 + lb.r)) {
+          deathCause = 'lure';
           die();
           break;
         }
@@ -1208,6 +1373,7 @@
   function getDeathText() {
     switch (deathCause) {
       case 'angler': return `DEVOURED AT ${score}m`;
+      case 'lure': return `BLINDED AT ${score}m`;
       case 'tentacle': return `GRABBED AT ${score}m`;
       case 'octopus': return `INKED AT ${score}m`;
       default: return `CRUSHED AT ${score}m`;
@@ -1267,6 +1433,9 @@
 
     // anglers
     for (const a of anglers) drawAngler(a);
+
+    // lure balls
+    for (const lb of lureBalls) drawLureBall(lb);
 
     // octopuses
     for (const o of octopuses) drawOctopus(o);
@@ -1349,14 +1518,29 @@
       }
     }
 
+    // torpedo button update
+    if (gameState === 'running') {
+      torpedoBtn.style.display = '';
+      if (torpedoCount > 0) {
+        torpedoBtn.textContent = `FIRE x${torpedoCount}`;
+        torpedoBtn.classList.remove('empty');
+      } else {
+        torpedoBtn.textContent = 'NO TORPEDO';
+        torpedoBtn.classList.add('empty');
+      }
+    } else {
+      torpedoBtn.style.display = 'none';
+    }
+
     // overlays
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     if (gameState === 'idle') {
-      drawCenterText('PRESS SPACE TO DIVE', 'rgba(0,229,255,0.6)');
+      drawCenterText(isTouch ? 'TAP TO DIVE' : 'PRESS SPACE TO DIVE', 'rgba(0,229,255,0.6)');
     } else if (gameState === 'dead') {
       if (awaitingName) {
         drawCenterText(getDeathText(), 'rgba(255,61,90,0.8)');
       } else {
-        drawCenterText(`${getDeathText()} — SPACE TO RETRY`, 'rgba(255,61,90,0.8)');
+        drawCenterText(`${getDeathText()} — ${isTouch ? 'TAP' : 'SPACE'} TO RETRY`, 'rgba(255,61,90,0.8)');
       }
     }
   }
