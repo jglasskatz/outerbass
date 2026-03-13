@@ -85,6 +85,16 @@
     text-transform: uppercase;
   }
 
+  .hero-content .dates {
+    margin-top: 1.2rem;
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    color: #fff;
+    letter-spacing: 0.15em;
+    text-shadow: 0 0 20px rgba(0,229,255,0.6), 0 0 60px rgba(0,229,255,0.3);
+  }
+
   .scroll-cue {
     position: absolute;
     bottom: 2rem;
@@ -163,6 +173,148 @@
     letter-spacing: 0.1em;
   }
 
+  /* === GAME WRAPPER (for overlay positioning) === */
+  .game-wrapper {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+  }
+
+  /* === SCORE SUBMIT OVERLAY === */
+  .score-overlay {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: rgba(3,7,18,0.88);
+    border-radius: 8px;
+    z-index: 10;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+  }
+  .score-overlay.active { display: flex; }
+
+  .score-overlay .death-score {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: var(--warning);
+    text-shadow: 0 0 20px rgba(255,61,90,0.4);
+  }
+
+  .score-overlay label {
+    color: var(--glow-dim);
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .score-overlay input {
+    background: var(--ink);
+    border: 1px solid var(--glow-dim);
+    border-radius: 4px;
+    color: #fff;
+    font-family: 'Space Mono', monospace;
+    font-size: 1rem;
+    padding: 0.5rem 0.75rem;
+    width: 200px;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .score-overlay input:focus { border-color: var(--glow); }
+
+  .score-overlay button {
+    background: transparent;
+    border: 1px solid var(--glow);
+    color: var(--glow);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.5rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .score-overlay button:hover {
+    background: var(--glow);
+    color: var(--abyss);
+  }
+
+  .score-overlay .skip-btn {
+    border: none;
+    color: #4a6a7a;
+    font-size: 0.7rem;
+    padding: 0.3rem;
+  }
+  .score-overlay .skip-btn:hover {
+    background: transparent;
+    color: var(--glow-dim);
+  }
+
+  /* === LEADERBOARD === */
+  .leaderboard {
+    margin-top: 2.5rem;
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+  }
+
+  .leaderboard h3 {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--glow);
+    text-shadow: 0 0 20px rgba(0,229,255,0.2);
+    margin-bottom: 1rem;
+    letter-spacing: 0.1em;
+  }
+
+  .leaderboard table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .leaderboard th {
+    font-size: 0.65rem;
+    color: var(--glow-dim);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .leaderboard td {
+    font-size: 0.85rem;
+    padding: 0.5rem 0.5rem;
+    border-bottom: 1px solid rgba(15,32,64,0.5);
+  }
+
+  .leaderboard tr td:first-child {
+    color: var(--glow-dim);
+    width: 2rem;
+  }
+
+  .leaderboard tr td:nth-child(2) {
+    color: #d0e8f0;
+    text-align: left;
+  }
+
+  .leaderboard tr td:last-child {
+    color: var(--glow);
+    text-align: right;
+    font-weight: 700;
+  }
+
+  .leaderboard .empty-msg {
+    color: #2a4a5a;
+    font-size: 0.75rem;
+    padding: 1rem;
+    letter-spacing: 0.1em;
+  }
+
   /* === FOOTER === */
   footer {
     text-align: center;
@@ -183,6 +335,7 @@
   <div class="hero-content">
     <h1>OUTER BASS</h1>
     <p>into the deep</p>
+    <p class="dates">6.19 - 6.21</p>
   </div>
   <a href="#game" class="scroll-cue">dive in</a>
 </section>
@@ -191,8 +344,21 @@
 <section id="game" class="game-section">
   <h2>DEPTH CHARGE</h2>
   <p class="subtitle">avoid the abyss dwellers — survive the descent</p>
-  <canvas id="gameCanvas" width="800" height="400"></canvas>
+  <div class="game-wrapper">
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <div id="scoreOverlay" class="score-overlay">
+      <div class="death-score" id="deathScore"></div>
+      <label for="playerName">ENTER YOUR NAME</label>
+      <input type="text" id="playerName" maxlength="16" placeholder="CAPTAIN..." autocomplete="off">
+      <button id="submitScore">LOG SCORE</button>
+      <button class="skip-btn" id="skipScore">SKIP</button>
+    </div>
+  </div>
   <p class="controls-hint">SPACE / TAP to dive &amp; surface &bull; avoid squid &amp; rocks</p>
+  <div class="leaderboard" id="leaderboard">
+    <h3>LEADERBOARD</h3>
+    <div id="leaderboardBody"></div>
+  </div>
 </section>
 
 <footer>&copy; OUTER BASS</footer>
@@ -218,10 +384,20 @@
   // submarine
   const sub = { x: 120, y: H / 2, w: 54, h: 24, vy: 0, targetVy: 0 };
 
+  // leaderboard elements
+  const scoreOverlay = document.getElementById('scoreOverlay');
+  const deathScoreEl = document.getElementById('deathScore');
+  const playerNameInput = document.getElementById('playerName');
+  const submitScoreBtn = document.getElementById('submitScore');
+  const skipScoreBtn = document.getElementById('skipScore');
+  const leaderboardBody = document.getElementById('leaderboardBody');
+
   // input
   let pressing = false;
+  let awaitingName = false;
 
   function onDown(e) {
+    if (awaitingName) return;
     e.preventDefault();
     pressing = true;
     if (gameState === 'idle' || gameState === 'dead') {
@@ -233,11 +409,72 @@
   canvas.addEventListener('pointerdown', onDown);
   canvas.addEventListener('pointerup', onUp);
   document.addEventListener('keydown', e => {
+    if (awaitingName) return;
     if (e.code === 'Space') onDown(e);
   });
   document.addEventListener('keyup', e => {
     if (e.code === 'Space') onUp(e);
   });
+
+  // --- leaderboard ---
+  function getScores() {
+    try { return JSON.parse(localStorage.getItem('ob_leaderboard') || '[]'); }
+    catch { return []; }
+  }
+
+  function saveScore(name, pts) {
+    const scores = getScores();
+    scores.push({ name, score: pts });
+    scores.sort((a, b) => b.score - a.score);
+    localStorage.setItem('ob_leaderboard', JSON.stringify(scores.slice(0, 10)));
+  }
+
+  function renderLeaderboard() {
+    const scores = getScores();
+    if (scores.length === 0) {
+      leaderboardBody.innerHTML = '<p class="empty-msg">NO SCORES YET — BE THE FIRST TO DIVE</p>';
+      return;
+    }
+    let html = '<table><thead><tr><th>#</th><th>NAME</th><th>DEPTH</th></tr></thead><tbody>';
+    scores.slice(0, 10).forEach((entry, i) => {
+      const safeName = entry.name.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      html += `<tr><td>${i + 1}</td><td>${safeName}</td><td>${entry.score}m</td></tr>`;
+    });
+    html += '</tbody></table>';
+    leaderboardBody.innerHTML = html;
+  }
+
+  function showScoreOverlay() {
+    awaitingName = false;
+    deathScoreEl.textContent = `CRUSHED AT ${score}m`;
+    playerNameInput.value = '';
+    scoreOverlay.classList.add('active');
+    awaitingName = true;
+    setTimeout(() => playerNameInput.focus(), 100);
+  }
+
+  function hideScoreOverlay() {
+    scoreOverlay.classList.remove('active');
+    awaitingName = false;
+  }
+
+  submitScoreBtn.addEventListener('click', () => {
+    const name = playerNameInput.value.trim() || 'ANON';
+    saveScore(name, score);
+    renderLeaderboard();
+    hideScoreOverlay();
+  });
+
+  skipScoreBtn.addEventListener('click', () => {
+    hideScoreOverlay();
+  });
+
+  playerNameInput.addEventListener('keydown', e => {
+    e.stopPropagation();
+    if (e.key === 'Enter') submitScoreBtn.click();
+  });
+
+  renderLeaderboard();
 
   function startGame() {
     gameState = 'running';
@@ -479,6 +716,7 @@
         vy: (Math.random() - 0.5) * 5
       });
     }
+    setTimeout(() => showScoreOverlay(), 600);
   }
 
   function draw() {
