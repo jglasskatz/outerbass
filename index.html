@@ -354,7 +354,7 @@
       <button class="skip-btn" id="skipScore">SKIP</button>
     </div>
   </div>
-  <p class="controls-hint">SPACE / TAP to dive &amp; surface &bull; avoid squid &amp; rocks</p>
+  <p class="controls-hint">SPACE / TAP to dive &amp; surface &bull; [X] to fire torpedo &bull; avoid the abyss dwellers</p>
   <div class="leaderboard" id="leaderboard">
     <h3>LEADERBOARD</h3>
     <div id="leaderboardBody"></div>
@@ -380,6 +380,16 @@
   let obstacles = [];
   let bubbles = [];
   let depthLines = [];
+  let torpedoPickups = [];
+  let torpedoes = [];
+  let torpedoCount = 0;
+  let anglers = [];
+  let octopuses = [];
+  let tentacles = [];
+  let deathCause = '';
+  let lastSpaceTime = 0;
+  let fastDiving = false;
+  let fastDiveTimer = 0;
 
   // submarine
   const sub = { x: 120, y: H / 2, w: 54, h: 24, vy: 0, targetVy: 0 };
@@ -395,6 +405,7 @@
   // input
   let pressing = false;
   let awaitingName = false;
+  let lastTapTime = 0;
 
   function onDown(e) {
     if (awaitingName) return;
@@ -406,11 +417,28 @@
   }
   function onUp(e) { pressing = false; }
 
-  canvas.addEventListener('pointerdown', onDown);
+  canvas.addEventListener('pointerdown', e => {
+    const now = performance.now();
+    if (now - lastTapTime < 300 && gameState === 'running') {
+      fastDiving = true;
+      fastDiveTimer = 18;
+    }
+    lastTapTime = now;
+    onDown(e);
+  });
   canvas.addEventListener('pointerup', onUp);
   document.addEventListener('keydown', e => {
     if (awaitingName) return;
-    if (e.code === 'Space') onDown(e);
+    if (e.code === 'Space') {
+      const now = performance.now();
+      if (now - lastSpaceTime < 300 && gameState === 'running') {
+        fastDiving = true;
+        fastDiveTimer = 18;
+      }
+      lastSpaceTime = now;
+      onDown(e);
+    }
+    if (e.code === 'KeyX' && gameState === 'running') shootTorpedo();
   });
   document.addEventListener('keyup', e => {
     if (e.code === 'Space') onUp(e);
@@ -446,7 +474,7 @@
 
   function showScoreOverlay() {
     awaitingName = false;
-    deathScoreEl.textContent = `CRUSHED AT ${score}m`;
+    deathScoreEl.textContent = getDeathText();
     playerNameInput.value = '';
     scoreOverlay.classList.add('active');
     awaitingName = true;
@@ -476,6 +504,17 @@
 
   renderLeaderboard();
 
+  function shootTorpedo() {
+    if (torpedoCount <= 0) return;
+    torpedoCount--;
+    torpedoes.push({
+      x: sub.x + sub.w / 2,
+      y: sub.y,
+      speed: 10,
+      trail: []
+    });
+  }
+
   function startGame() {
     gameState = 'running';
     score = 0;
@@ -487,6 +526,15 @@
     bubbles = [];
     particles = [];
     depthLines = [];
+    torpedoPickups = [];
+    torpedoes = [];
+    torpedoCount = 0;
+    anglers = [];
+    octopuses = [];
+    tentacles = [];
+    deathCause = '';
+    fastDiving = false;
+    fastDiveTimer = 0;
     for (let i = 0; i < 30; i++) {
       particles.push(makeParticle(Math.random() * W));
     }
@@ -513,12 +561,52 @@
     });
   }
 
+  function spawnTorpedoPickup() {
+    torpedoPickups.push({
+      x: W + 30,
+      y: 40 + Math.random() * (H - 80),
+      bob: Math.random() * Math.PI * 2,
+      speed: 1.5 + Math.random() * 0.5
+    });
+  }
+
+  function spawnAngler() {
+    anglers.push({
+      x: W + 60,
+      y: 40 + Math.random() * (H - 80),
+      size: 50 + Math.random() * 20,
+      speed: 1.8 + Math.random() * 0.6,
+      jawAngle: 0,
+      lurePhase: Math.random() * Math.PI * 2
+    });
+  }
+
+  function spawnOctopus() {
+    octopuses.push({
+      x: W + 50,
+      y: 40 + Math.random() * (H - 80),
+      size: 40 + Math.random() * 15,
+      speed: 1.2 + Math.random() * 0.4,
+      tentaclePhase: Math.random() * Math.PI * 2,
+      shootTimer: 60 + Math.floor(Math.random() * 60),
+      settled: false,
+      settleX: W * 0.55 + Math.random() * (W * 0.25)
+    });
+  }
+
   // --- drawing helpers ---
   function drawSub(x, y) {
     ctx.save();
+    const yellow = score >= 7500;
+    const hullFill = yellow ? '#b8960a' : '#1a3a5c';
+    const hullStroke = yellow ? '#ffe040' : '#3af';
+    const viewportFill = yellow ? 'rgba(255,240,80,0.5)' : 'rgba(0,229,255,0.5)';
+    const propColor = yellow ? '#ffe040' : '#5cf';
+    const glowColor = yellow ? 'rgba(255,224,64,' : 'rgba(0,229,255,';
+
     // hull
-    ctx.fillStyle = '#1a3a5c';
-    ctx.strokeStyle = '#3af';
+    ctx.fillStyle = hullFill;
+    ctx.strokeStyle = hullStroke;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.ellipse(x, y, sub.w / 2, sub.h / 2, 0, 0, Math.PI * 2);
@@ -526,14 +614,14 @@
     ctx.stroke();
 
     // viewport
-    ctx.fillStyle = 'rgba(0,229,255,0.5)';
+    ctx.fillStyle = viewportFill;
     ctx.beginPath();
     ctx.arc(x + 14, y - 2, 6, 0, Math.PI * 2);
     ctx.fill();
 
     // conning tower
-    ctx.fillStyle = '#1a3a5c';
-    ctx.strokeStyle = '#3af';
+    ctx.fillStyle = hullFill;
+    ctx.strokeStyle = hullStroke;
     ctx.beginPath();
     ctx.roundRect(x - 6, y - sub.h / 2 - 8, 16, 10, 3);
     ctx.fill();
@@ -541,7 +629,7 @@
 
     // propeller
     const pAng = frameCount * 0.4;
-    ctx.strokeStyle = '#5cf';
+    ctx.strokeStyle = propColor;
     ctx.lineWidth = 2;
     for (let i = 0; i < 3; i++) {
       const a = pAng + (i * Math.PI * 2) / 3;
@@ -553,8 +641,8 @@
 
     // glow
     const grd = ctx.createRadialGradient(x + 14, y, 0, x + 14, y, 30);
-    grd.addColorStop(0, 'rgba(0,229,255,0.12)');
-    grd.addColorStop(1, 'rgba(0,229,255,0)');
+    grd.addColorStop(0, glowColor + '0.12)');
+    grd.addColorStop(1, glowColor + '0)');
     ctx.fillStyle = grd;
     ctx.fillRect(x - 20, y - 35, 70, 70);
     ctx.restore();
@@ -630,6 +718,240 @@
     ctx.restore();
   }
 
+  function drawTorpedoPickup(o) {
+    const bobY = Math.sin(o.bob) * 6;
+    ctx.save();
+    ctx.translate(o.x, o.y + bobY);
+    // glow
+    const grd = ctx.createRadialGradient(0, 0, 0, 0, 0, 24);
+    grd.addColorStop(0, 'rgba(57,255,143,0.2)');
+    grd.addColorStop(1, 'rgba(57,255,143,0)');
+    ctx.fillStyle = grd;
+    ctx.fillRect(-24, -24, 48, 48);
+    // body
+    ctx.fillStyle = '#2a8a4a';
+    ctx.strokeStyle = '#39ff8f';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 14, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // nose
+    ctx.fillStyle = '#39ff8f';
+    ctx.beginPath();
+    ctx.moveTo(14, 0);
+    ctx.lineTo(20, -3);
+    ctx.lineTo(20, 3);
+    ctx.closePath();
+    ctx.fill();
+    // fins
+    ctx.strokeStyle = '#39ff8f';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-14, 0);
+    ctx.lineTo(-18, -6);
+    ctx.moveTo(-14, 0);
+    ctx.lineTo(-18, 6);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawTorpedoProjectile(t) {
+    ctx.save();
+    for (let i = 0; i < t.trail.length; i++) {
+      const tr = t.trail[i];
+      const alpha = (i / t.trail.length) * 0.3;
+      ctx.fillStyle = `rgba(57,255,143,${alpha})`;
+      ctx.beginPath();
+      ctx.arc(tr.x, tr.y, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#39ff8f';
+    ctx.strokeStyle = '#afffcf';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.ellipse(t.x, t.y, 10, 3.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.moveTo(t.x + 10, t.y);
+    ctx.lineTo(t.x + 16, t.y - 1.5);
+    ctx.lineTo(t.x + 16, t.y + 1.5);
+    ctx.closePath();
+    ctx.fill();
+    const grd = ctx.createRadialGradient(t.x, t.y, 0, t.x, t.y, 18);
+    grd.addColorStop(0, 'rgba(57,255,143,0.25)');
+    grd.addColorStop(1, 'rgba(57,255,143,0)');
+    ctx.fillStyle = grd;
+    ctx.fillRect(t.x - 18, t.y - 18, 36, 36);
+    ctx.restore();
+  }
+
+  function drawAngler(o) {
+    ctx.save();
+    ctx.translate(o.x, o.y);
+    const s = o.size;
+    // body
+    ctx.fillStyle = '#0a1520';
+    ctx.strokeStyle = '#1a3a4a';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, s * 0.55, s * 0.4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // lower fin
+    ctx.fillStyle = '#0a1520';
+    ctx.beginPath();
+    ctx.moveTo(-s * 0.2, s * 0.3);
+    ctx.quadraticCurveTo(-s * 0.5, s * 0.6, -s * 0.55, s * 0.25);
+    ctx.fill();
+    // mouth
+    const jawOpen = Math.sin(o.jawAngle) * 0.15 + 0.2;
+    ctx.fillStyle = '#1a0505';
+    ctx.beginPath();
+    ctx.moveTo(s * 0.35, -s * 0.05);
+    ctx.lineTo(s * 0.6, -s * jawOpen * 1.5);
+    ctx.lineTo(s * 0.6, s * jawOpen * 1.5);
+    ctx.closePath();
+    ctx.fill();
+    // teeth
+    ctx.fillStyle = '#c0d8d8';
+    for (let i = 0; i < 5; i++) {
+      const t = i / 4;
+      const tx = s * 0.35 + t * s * 0.25;
+      const ty1 = -s * 0.05 - t * (s * jawOpen * 1.5 - s * 0.05);
+      ctx.beginPath();
+      ctx.moveTo(tx - 2, ty1);
+      ctx.lineTo(tx, ty1 + 6);
+      ctx.lineTo(tx + 2, ty1);
+      ctx.closePath();
+      ctx.fill();
+      const ty2 = -s * 0.05 + t * (s * jawOpen * 1.5 + s * 0.05);
+      ctx.beginPath();
+      ctx.moveTo(tx - 2, ty2);
+      ctx.lineTo(tx, ty2 - 6);
+      ctx.lineTo(tx + 2, ty2);
+      ctx.closePath();
+      ctx.fill();
+    }
+    // eye
+    ctx.fillStyle = '#ff1a1a';
+    ctx.beginPath();
+    ctx.arc(s * 0.15, -s * 0.18, s * 0.09, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.arc(s * 0.17, -s * 0.18, s * 0.035, 0, Math.PI * 2);
+    ctx.fill();
+    // lure stalk
+    const lureBob = Math.sin(o.lurePhase) * 4;
+    ctx.strokeStyle = '#1a5a4a';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(s * 0.1, -s * 0.35);
+    ctx.quadraticCurveTo(s * 0.05, -s * 0.55 + lureBob, s * 0.25, -s * 0.5 + lureBob);
+    ctx.stroke();
+    // lure light
+    const lx = s * 0.25, ly = -s * 0.5 + lureBob;
+    const lureGrd = ctx.createRadialGradient(lx, ly, 0, lx, ly, 22);
+    lureGrd.addColorStop(0, 'rgba(200,255,100,0.8)');
+    lureGrd.addColorStop(0.3, 'rgba(150,255,50,0.3)');
+    lureGrd.addColorStop(1, 'rgba(150,255,50,0)');
+    ctx.fillStyle = lureGrd;
+    ctx.fillRect(lx - 22, ly - 22, 44, 44);
+    ctx.fillStyle = '#eeffaa';
+    ctx.beginPath();
+    ctx.arc(lx, ly, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    // body glow
+    const bodyGrd = ctx.createRadialGradient(0, 0, 0, 0, 0, s * 0.7);
+    bodyGrd.addColorStop(0, 'rgba(255,20,20,0.06)');
+    bodyGrd.addColorStop(1, 'rgba(255,20,20,0)');
+    ctx.fillStyle = bodyGrd;
+    ctx.fillRect(-s, -s, s * 2, s * 2);
+    ctx.restore();
+  }
+
+  function drawOctopus(o) {
+    ctx.save();
+    ctx.translate(o.x, o.y);
+    const s = o.size;
+    // tentacles
+    ctx.strokeStyle = 'rgba(140,60,200,0.7)';
+    ctx.lineWidth = 2.5;
+    for (let i = 0; i < 8; i++) {
+      const angle = -0.8 + i * 0.23;
+      const phase = o.tentaclePhase + i * 0.8;
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.2, s * 0.15);
+      const tentLen = s * (0.7 + Math.sin(phase) * 0.15);
+      const cx1 = -s * 0.4 + Math.sin(phase) * 8;
+      const cy1 = s * 0.25 + Math.cos(phase + i) * 6;
+      const ex = -s * 0.2 - tentLen * Math.cos(angle);
+      const ey = s * 0.15 + tentLen * Math.sin(angle);
+      ctx.quadraticCurveTo(cx1, cy1, ex, ey);
+      ctx.stroke();
+    }
+    // head
+    ctx.fillStyle = '#5a1a8a';
+    ctx.strokeStyle = '#8a3abf';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.ellipse(0, -s * 0.1, s * 0.35, s * 0.45, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // eyes
+    ctx.fillStyle = '#e040ff';
+    ctx.beginPath();
+    ctx.arc(s * 0.1, -s * 0.15, s * 0.08, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(-s * 0.05, -s * 0.15, s * 0.08, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.arc(s * 0.12, -s * 0.15, s * 0.03, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(-s * 0.03, -s * 0.15, s * 0.03, 0, Math.PI * 2);
+    ctx.fill();
+    // glow
+    const grd = ctx.createRadialGradient(0, 0, 0, 0, 0, s * 0.8);
+    grd.addColorStop(0, 'rgba(140,60,200,0.1)');
+    grd.addColorStop(1, 'rgba(140,60,200,0)');
+    ctx.fillStyle = grd;
+    ctx.fillRect(-s, -s, s * 2, s * 2);
+    ctx.restore();
+  }
+
+  function drawTentacleProjectile(t) {
+    ctx.save();
+    const angle = Math.atan2(t.vy, t.vx);
+    ctx.translate(t.x, t.y);
+    ctx.rotate(angle);
+    ctx.strokeStyle = 'rgba(180,80,255,0.8)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(-12, 0);
+    for (let i = 0; i < 5; i++) {
+      const px = -12 + i * 6;
+      const py = Math.sin(t.phase + i * 1.2) * 4;
+      ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.fillStyle = '#c050ff';
+    ctx.beginPath();
+    ctx.arc(18, 0, 3, 0, Math.PI * 2);
+    ctx.fill();
+    const grd = ctx.createRadialGradient(0, 0, 0, 0, 0, 14);
+    grd.addColorStop(0, 'rgba(180,80,255,0.15)');
+    grd.addColorStop(1, 'rgba(180,80,255,0)');
+    ctx.fillStyle = grd;
+    ctx.fillRect(-14, -14, 28, 28);
+    ctx.restore();
+  }
+
   // --- collision ---
   function collides(o) {
     const wobY = o.type === 'squid' ? Math.sin(o.wobble) * 4 : 0;
@@ -645,8 +967,14 @@
 
     if (gameState === 'running') {
       // sub physics
-      sub.targetVy = pressing ? 3.5 : -2.5;
-      sub.vy += (sub.targetVy - sub.vy) * 0.1;
+      if (fastDiving) {
+        sub.targetVy = 9;
+        fastDiveTimer--;
+        if (fastDiveTimer <= 0) fastDiving = false;
+      } else {
+        sub.targetVy = pressing ? 3.5 : -2.5;
+      }
+      sub.vy += (sub.targetVy - sub.vy) * 0.12;
       sub.y += sub.vy;
       sub.y = Math.max(sub.h, Math.min(H - sub.h, sub.y));
 
@@ -663,7 +991,7 @@
         o.x -= o.speed;
         if (o.type === 'squid') o.wobble += 0.06;
         if (o.x < -60) { obstacles.splice(i, 1); continue; }
-        if (collides(o)) { die(); break; }
+        if (collides(o)) { deathCause = 'obstacle'; die(); break; }
       }
 
       // bubbles from sub
@@ -679,6 +1007,180 @@
       }
 
       score += 1;
+
+      // fast dive bubbles
+      if (fastDiving && frameCount % 2 === 0) {
+        bubbles.push({
+          x: sub.x + (Math.random() - 0.5) * sub.w,
+          y: sub.y - sub.h / 2,
+          r: 1 + Math.random() * 2,
+          alpha: 0.5,
+          vx: (Math.random() - 0.5) * 2,
+          vy: -(2 + Math.random() * 2)
+        });
+      }
+
+      // torpedo pickup spawning (10% chance every 100m)
+      if (score % 100 === 0 && Math.random() < 0.1) spawnTorpedoPickup();
+
+      // torpedo pickups
+      for (let i = torpedoPickups.length - 1; i >= 0; i--) {
+        const tp = torpedoPickups[i];
+        tp.x -= tp.speed;
+        tp.bob += 0.05;
+        if (tp.x < -30) { torpedoPickups.splice(i, 1); continue; }
+        const dx = sub.x - tp.x;
+        const dy = sub.y - (tp.y + Math.sin(tp.bob) * 6);
+        if (dx * dx + dy * dy < 900) {
+          torpedoCount = Math.min(torpedoCount + 1, 5);
+          torpedoPickups.splice(i, 1);
+        }
+      }
+
+      // torpedo projectiles
+      for (let i = torpedoes.length - 1; i >= 0; i--) {
+        const t = torpedoes[i];
+        t.trail.push({ x: t.x, y: t.y });
+        if (t.trail.length > 10) t.trail.shift();
+        t.x += t.speed;
+        if (t.x > W + 30) { torpedoes.splice(i, 1); continue; }
+        let hit = false;
+        // vs obstacles
+        for (let j = obstacles.length - 1; j >= 0; j--) {
+          const o = obstacles[j];
+          const wobY = o.type === 'squid' ? Math.sin(o.wobble) * 4 : 0;
+          const dx = t.x - o.x;
+          const dy = t.y - (o.y + wobY);
+          if (dx * dx + dy * dy < (o.size + 10) * (o.size + 10) * 0.15) {
+            for (let k = 0; k < 12; k++) {
+              bubbles.push({ x: o.x, y: o.y + wobY, r: 1 + Math.random() * 3, alpha: 0.7, vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6 });
+            }
+            obstacles.splice(j, 1);
+            hit = true;
+            break;
+          }
+        }
+        // vs anglers
+        if (!hit) {
+          for (let j = anglers.length - 1; j >= 0; j--) {
+            const a = anglers[j];
+            const dx = t.x - a.x;
+            const dy = t.y - a.y;
+            if (dx * dx + dy * dy < a.size * a.size * 0.25) {
+              for (let k = 0; k < 20; k++) {
+                bubbles.push({ x: a.x, y: a.y, r: 1.5 + Math.random() * 4, alpha: 0.8, vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 8 });
+              }
+              anglers.splice(j, 1);
+              hit = true;
+              break;
+            }
+          }
+        }
+        // vs octopuses
+        if (!hit) {
+          for (let j = octopuses.length - 1; j >= 0; j--) {
+            const o = octopuses[j];
+            const dx = t.x - o.x;
+            const dy = t.y - o.y;
+            if (dx * dx + dy * dy < o.size * o.size * 0.2) {
+              for (let k = 0; k < 16; k++) {
+                bubbles.push({ x: o.x, y: o.y, r: 1 + Math.random() * 3.5, alpha: 0.7, vx: (Math.random() - 0.5) * 7, vy: (Math.random() - 0.5) * 7 });
+              }
+              octopuses.splice(j, 1);
+              hit = true;
+              break;
+            }
+          }
+        }
+        if (hit) torpedoes.splice(i, 1);
+      }
+
+      // angler fish (5k+)
+      if (gameState !== 'running') { /* died above */ }
+      else if (score > 5000) {
+        const anglerRate = Math.max(300, 700 - Math.floor((score - 5000) / 500) * 30);
+        if (frameCount % anglerRate === 0) spawnAngler();
+      }
+
+      for (let i = anglers.length - 1; i >= 0; i--) {
+        const a = anglers[i];
+        const dy = sub.y - a.y;
+        a.y += dy * 0.02;
+        a.x -= a.speed;
+        a.jawAngle += 0.08;
+        a.lurePhase += 0.06;
+        if (a.x < -80) { anglers.splice(i, 1); continue; }
+        if (gameState !== 'running') continue;
+        const dx = sub.x - a.x;
+        const ddy = sub.y - a.y;
+        const minDist = (sub.w * 0.35) + (a.size * 0.4);
+        if (dx * dx + ddy * ddy < minDist * minDist) {
+          deathCause = 'angler';
+          die();
+          break;
+        }
+      }
+
+      // octopus (one every 5k starting at 10k)
+      if (gameState !== 'running') { /* died above */ }
+      else if (score >= 10000 && score % 5000 === 0) {
+        spawnOctopus();
+      }
+
+      for (let i = octopuses.length - 1; i >= 0; i--) {
+        const o = octopuses[i];
+        o.tentaclePhase += 0.04;
+        if (!o.settled) {
+          o.x -= o.speed * 2;
+          if (o.x <= o.settleX) o.settled = true;
+        } else {
+          o.x -= o.speed * 0.3;
+        }
+        if (o.x < -60) { octopuses.splice(i, 1); continue; }
+        if (gameState !== 'running') continue;
+        o.shootTimer--;
+        if (o.shootTimer <= 0 && o.settled) {
+          const dx = sub.x - o.x;
+          const dy = sub.y - o.y;
+          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          tentacles.push({
+            x: o.x - o.size * 0.3,
+            y: o.y,
+            vx: (dx / dist) * 5,
+            vy: (dy / dist) * 5,
+            phase: Math.random() * Math.PI * 2
+          });
+          o.shootTimer = 80 + Math.floor(Math.random() * 60);
+        }
+        const dx = sub.x - o.x;
+        const dy = sub.y - o.y;
+        const minDist = (sub.w * 0.35) + (o.size * 0.35);
+        if (dx * dx + dy * dy < minDist * minDist) {
+          deathCause = 'octopus';
+          die();
+          break;
+        }
+      }
+
+      // tentacle projectiles
+      for (let i = tentacles.length - 1; i >= 0; i--) {
+        const t = tentacles[i];
+        t.x += t.vx;
+        t.y += t.vy;
+        t.phase += 0.15;
+        if (t.x < -20 || t.x > W + 20 || t.y < -20 || t.y > H + 20) {
+          tentacles.splice(i, 1);
+          continue;
+        }
+        if (gameState !== 'running') continue;
+        const dx = sub.x - t.x;
+        const dy = sub.y - t.y;
+        if (dx * dx + dy * dy < (sub.w * 0.3 + 6) * (sub.w * 0.3 + 6)) {
+          deathCause = 'tentacle';
+          die();
+          break;
+        }
+      }
     }
 
     // bubbles
@@ -703,8 +1205,18 @@
     }
   }
 
+  function getDeathText() {
+    switch (deathCause) {
+      case 'angler': return `DEVOURED AT ${score}m`;
+      case 'tentacle': return `GRABBED AT ${score}m`;
+      case 'octopus': return `INKED AT ${score}m`;
+      default: return `CRUSHED AT ${score}m`;
+    }
+  }
+
   function die() {
     gameState = 'dead';
+    awaitingName = true;
     if (score > highScore) highScore = score;
     // explosion particles
     for (let i = 0; i < 20; i++) {
@@ -750,6 +1262,21 @@
       o.type === 'squid' ? drawSquid(o) : drawRock(o);
     }
 
+    // torpedo pickups
+    for (const tp of torpedoPickups) drawTorpedoPickup(tp);
+
+    // anglers
+    for (const a of anglers) drawAngler(a);
+
+    // octopuses
+    for (const o of octopuses) drawOctopus(o);
+
+    // tentacle projectiles
+    for (const t of tentacles) drawTentacleProjectile(t);
+
+    // torpedo projectiles
+    for (const t of torpedoes) drawTorpedoProjectile(t);
+
     // bubbles
     for (const b of bubbles) {
       ctx.strokeStyle = `rgba(0,229,255,${b.alpha})`;
@@ -762,6 +1289,15 @@
     // sub
     if (gameState !== 'dead') drawSub(sub.x, sub.y);
 
+    // color inversion zone (2500-4000m)
+    if (score >= 2500 && score < 4000) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'difference';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, W, H);
+      ctx.restore();
+    }
+
     // HUD
     ctx.fillStyle = 'rgba(0,229,255,0.7)';
     ctx.font = '700 14px "Space Mono", monospace';
@@ -771,12 +1307,57 @@
       ctx.fillStyle = 'rgba(0,229,255,0.35)';
       ctx.fillText(`BEST  ${highScore}m`, 16, 48);
     }
+    // torpedo indicator
+    if (gameState === 'running') {
+      const torpY = highScore > 0 ? 68 : 48;
+      if (torpedoCount > 0) {
+        ctx.fillStyle = 'rgba(57,255,143,0.8)';
+        ctx.fillText(`[X] TORPEDO x${torpedoCount}`, 16, torpY);
+      } else {
+        ctx.fillStyle = 'rgba(57,255,143,0.25)';
+        ctx.fillText(`NO TORPEDO`, 16, torpY);
+      }
+      // fast dive indicator
+      if (fastDiving) {
+        ctx.fillStyle = 'rgba(255,200,50,0.8)';
+        ctx.fillText('FAST DIVE!', W - 140, 28);
+      }
+      // depth warnings
+      if (score >= 7400 && score < 7600) {
+        ctx.fillStyle = `rgba(255,224,64,${0.5 + Math.sin(frameCount * 0.12) * 0.3})`;
+        ctx.font = '700 12px "Space Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('HULL IRRADIATED — SUB MUTATING', W / 2, H - 16);
+        ctx.textAlign = 'left';
+        ctx.font = '700 14px "Space Mono", monospace';
+      }
+      if (score > 4800 && score < 5200) {
+        ctx.fillStyle = `rgba(255,61,90,${0.5 + Math.sin(frameCount * 0.1) * 0.3})`;
+        ctx.font = '700 12px "Space Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('WARNING: ANGLER FISH TERRITORY', W / 2, H - 16);
+        ctx.textAlign = 'left';
+        ctx.font = '700 14px "Space Mono", monospace';
+      }
+      if (score > 9800 && score < 10200) {
+        ctx.fillStyle = `rgba(140,60,200,${0.5 + Math.sin(frameCount * 0.1) * 0.3})`;
+        ctx.font = '700 12px "Space Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('WARNING: OCTOPUS ZONE', W / 2, H - 16);
+        ctx.textAlign = 'left';
+        ctx.font = '700 14px "Space Mono", monospace';
+      }
+    }
 
     // overlays
     if (gameState === 'idle') {
       drawCenterText('PRESS SPACE TO DIVE', 'rgba(0,229,255,0.6)');
     } else if (gameState === 'dead') {
-      drawCenterText(`CRUSHED AT ${score}m — SPACE TO RETRY`, 'rgba(255,61,90,0.8)');
+      if (awaitingName) {
+        drawCenterText(getDeathText(), 'rgba(255,61,90,0.8)');
+      } else {
+        drawCenterText(`${getDeathText()} — SPACE TO RETRY`, 'rgba(255,61,90,0.8)');
+      }
     }
   }
 
