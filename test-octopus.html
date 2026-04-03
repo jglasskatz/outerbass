@@ -3,9 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://cdn.tickettailor.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.tickettailor.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.stripe.com https://*.tickettailor.com https://cdn.tickettailor.com https://app.tickettailor.com; connect-src 'self' https://outerbass-7471e-default-rtdb.firebaseio.com https://api.stripe.com https://www.tickettailor.com https://api.tickettailor.com; frame-src https://js.stripe.com https://hooks.stripe.com https://www.tickettailor.com https://*.tickettailor.com; frame-ancestors 'none';">
-<meta http-equiv="X-Frame-Options" content="DENY">
-<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
 <title>Outer Bass</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Unbounded:wght@300;700;900&display=swap" rel="stylesheet">
@@ -363,37 +360,6 @@
     pointer-events: none;
   }
 
-  /* === TICKETS === */
-  .tickets-section {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 4rem 1rem 6rem;
-    background: linear-gradient(180deg, var(--deep) 0%, var(--abyss) 100%);
-  }
-
-  .tickets-section h2 {
-    font-family: 'Unbounded', sans-serif;
-    font-weight: 700;
-    font-size: clamp(1.5rem, 4vw, 2.5rem);
-    margin-bottom: 0.5rem;
-    color: var(--glow);
-    text-shadow: 0 0 30px rgba(0,229,255,0.25);
-  }
-
-  .tickets-section .subtitle {
-    color: var(--glow-dim);
-    font-size: 0.8rem;
-    letter-spacing: 0.15em;
-    margin-bottom: 2rem;
-  }
-
-  .tickets-wrapper {
-    width: 100%;
-    max-width: 800px;
-  }
-
   /* === FOOTER === */
   footer {
     text-align: center;
@@ -401,7 +367,7 @@
     color: #1e3a4a;
     font-size: 0.7rem;
     letter-spacing: 0.15em;
-    background: var(--abyss);
+    background: var(--deep);
   }
 
   /* === MOBILE === */
@@ -460,16 +426,6 @@
   </div>
 </section>
 
-<!-- TICKETS -->
-<section id="tickets" class="tickets-section">
-  <h2>TICKETS</h2>
-  <p class="subtitle">secure your passage to the deep</p>
-  <div class="tickets-wrapper">
-    <!-- Ticket Tailor Widget. Paste this into your website where you want the widget to appear. Do not change the code or the widget may not work properly. -->
-    <div class="tt-widget"><div class="tt-widget-fallback"><p><a href="https://www.tickettailor.com/all-tickets/playcorp/?ref=website_widget&show_search_filter=true&show_date_filter=true&show_sort=true" target="_blank">Click here to buy tickets</a><br /><small><a href="https://www.tickettailor.com?rf=wdg_297603" class="tt-widget-powered">Sell tickets online with Ticket Tailor</a></small></p></div><script src="https://cdn.tickettailor.com/js/widgets/min/widget.js" data-url="https://www.tickettailor.com/all-tickets/playcorp/?ref=website_widget&show_search_filter=true&show_date_filter=true&show_sort=true" data-type="inline" data-inline-minimal="true" data-inline-show-logo="false" data-inline-bg-fill="false" data-inline-inherit-ref-from-url-param="" data-inline-ref="website_widget"></script></div><!-- End of Ticket Tailor Widget -->
-  </div>
-</section>
-
 <footer>&copy; OUTER BASS</footer>
 
 <script>
@@ -481,7 +437,7 @@
 
   // --- state ---
   let gameState = 'idle'; // idle | running | dead
-  let score = 0;
+  let score = 9990;
   let highScore = 0;
   let frameCount = 0;
   let speed = 3;
@@ -491,7 +447,7 @@
   let depthLines = [];
   let torpedoPickups = [];
   let torpedoes = [];
-  let torpedoCount = 0;
+  let torpedoCount = 5;
   let anglers = [];
   let octopuses = [];
   let tentacles = [];
@@ -596,41 +552,17 @@
 
   function renderLeaderboard() {
     const scores = getScores();
-    leaderboardBody.textContent = '';
     if (scores.length === 0) {
-      const p = document.createElement('p');
-      p.className = 'empty-msg';
-      p.textContent = 'NO SCORES YET \u2014 BE THE FIRST TO DIVE';
-      leaderboardBody.appendChild(p);
+      leaderboardBody.innerHTML = '<p class="empty-msg">NO SCORES YET — BE THE FIRST TO DIVE</p>';
       return;
     }
-    const table = document.createElement('table');
-    const thead = document.createElement('thead');
-    const headRow = document.createElement('tr');
-    ['#', 'NAME', 'DEPTH'].forEach(label => {
-      const th = document.createElement('th');
-      th.textContent = label;
-      headRow.appendChild(th);
-    });
-    thead.appendChild(headRow);
-    table.appendChild(thead);
-    const tbody = document.createElement('tbody');
+    let html = '<table><thead><tr><th>#</th><th>NAME</th><th>DEPTH</th></tr></thead><tbody>';
     scores.slice(0, 10).forEach((entry, i) => {
-      if (typeof entry.score !== 'number') return;
-      const tr = document.createElement('tr');
-      const tdRank = document.createElement('td');
-      tdRank.textContent = i + 1;
-      tr.appendChild(tdRank);
-      const tdName = document.createElement('td');
-      tdName.textContent = entry.name;
-      tr.appendChild(tdName);
-      const tdScore = document.createElement('td');
-      tdScore.textContent = `${entry.score}m`;
-      tr.appendChild(tdScore);
-      tbody.appendChild(tr);
+      const safeName = entry.name.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      html += `<tr><td>${i + 1}</td><td>${safeName}</td><td>${entry.score}m</td></tr>`;
     });
-    table.appendChild(tbody);
-    leaderboardBody.appendChild(table);
+    html += '</tbody></table>';
+    leaderboardBody.innerHTML = html;
   }
 
   function showScoreOverlay() {
@@ -679,7 +611,7 @@
 
   function startGame() {
     gameState = 'running';
-    score = 0;
+    score = 9990;
     frameCount = 0;
     speed = 3;
     sub.y = H / 2;
@@ -690,7 +622,7 @@
     depthLines = [];
     torpedoPickups = [];
     torpedoes = [];
-    torpedoCount = 0;
+    torpedoCount = 5;
     anglers = [];
     octopuses = [];
     tentacles = [];
