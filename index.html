@@ -398,6 +398,219 @@
     box-shadow: 0 0 60px rgba(0,229,255,0.06);
   }
 
+  /* === TRANSMISSION === */
+  .transmission {
+    position: relative;
+    padding: 6rem 1.5rem;
+    background: linear-gradient(180deg, var(--abyss) 0%, var(--deep) 30%, var(--deep) 70%, var(--abyss) 100%);
+    overflow: hidden;
+  }
+
+  .transmission::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,229,255,0.015) 2px,
+      rgba(0,229,255,0.015) 4px
+    );
+    pointer-events: none;
+  }
+
+  .transmission-inner {
+    max-width: 700px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .transmission .static-line {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--glow-dim);
+    letter-spacing: 0.3em;
+    opacity: 0.6;
+    margin-bottom: 2.5rem;
+    animation: flicker 3s ease-in-out infinite;
+  }
+
+  @keyframes flicker {
+    0%, 100% { opacity: 0.6; }
+    5% { opacity: 0.1; }
+    6% { opacity: 0.7; }
+    10% { opacity: 0.3; }
+    11% { opacity: 0.6; }
+    50% { opacity: 0.5; }
+    51% { opacity: 0.8; }
+    52% { opacity: 0.4; }
+  }
+
+  .tx-block {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    margin-bottom: 2.5rem;
+  }
+
+  .tx-block.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .tx-captain {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 300;
+    font-size: 0.85rem;
+    color: var(--glow);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    text-shadow: 0 0 20px rgba(0,229,255,0.3);
+  }
+
+  .tx-body {
+    color: #8ab4c4;
+    font-size: 0.85rem;
+    line-height: 1.8;
+  }
+
+  .tx-heading {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: clamp(1.4rem, 3.5vw, 2rem);
+    color: #fff;
+    text-shadow: 0 0 40px rgba(0,229,255,0.3);
+    margin-bottom: 0.3rem;
+  }
+
+  .tx-heading-sub {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 300;
+    font-size: clamp(0.8rem, 2vw, 1rem);
+    color: var(--glow);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    text-shadow: 0 0 20px rgba(0,229,255,0.4);
+  }
+
+  .tx-section-head {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--glow);
+    letter-spacing: 0.1em;
+    margin-bottom: 1.2rem;
+    text-shadow: 0 0 15px rgba(0,229,255,0.25);
+  }
+
+  .tx-item {
+    margin-bottom: 1.2rem;
+    padding-left: 1.2rem;
+    border-left: 2px solid rgba(0,229,255,0.15);
+  }
+
+  .tx-item strong {
+    color: var(--glow);
+    font-weight: 700;
+    display: block;
+    margin-bottom: 0.2rem;
+    font-size: 0.85rem;
+  }
+
+  .tx-item p {
+    color: #8ab4c4;
+    font-size: 0.8rem;
+    line-height: 1.7;
+  }
+
+  .tx-heart {
+    text-align: center;
+    color: #8ab4c4;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    font-style: italic;
+    border-top: 1px solid rgba(0,229,255,0.08);
+    border-bottom: 1px solid rgba(0,229,255,0.08);
+    padding: 2rem 0;
+  }
+
+  .tx-signoff {
+    text-align: center;
+    margin-top: 2rem;
+  }
+
+  .tx-signoff .date {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: clamp(1rem, 2.5vw, 1.3rem);
+    color: #fff;
+    text-shadow: 0 0 30px rgba(0,229,255,0.3);
+    margin-bottom: 0.3rem;
+  }
+
+  .tx-signoff .location {
+    color: var(--glow-dim);
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  .tx-signoff .descent {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: clamp(1.2rem, 3vw, 1.6rem);
+    color: var(--glow);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-shadow: 0 0 40px rgba(0,229,255,0.5);
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { text-shadow: 0 0 40px rgba(0,229,255,0.5); }
+    50% { text-shadow: 0 0 80px rgba(0,229,255,0.8), 0 0 120px rgba(0,229,255,0.3); }
+  }
+
+  .sonar-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin: 3rem 0;
+  }
+
+  .sonar-divider::before,
+  .sonar-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,229,255,0.15), transparent);
+  }
+
+  .sonar-ping {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--glow);
+    box-shadow: 0 0 12px var(--glow), 0 0 30px rgba(0,229,255,0.3);
+    animation: ping 2s ease-out infinite;
+  }
+
+  @keyframes ping {
+    0% { box-shadow: 0 0 12px var(--glow), 0 0 30px rgba(0,229,255,0.3); transform: scale(1); }
+    50% { box-shadow: 0 0 20px var(--glow), 0 0 60px rgba(0,229,255,0.4); transform: scale(1.3); }
+    100% { box-shadow: 0 0 12px var(--glow), 0 0 30px rgba(0,229,255,0.3); transform: scale(1); }
+  }
+
+  @media (max-width: 600px) {
+    .transmission { padding: 4rem 1rem; }
+    .tx-item { padding-left: 0.8rem; }
+  }
+
   /* === FOOTER === */
   footer {
     text-align: center;
@@ -439,7 +652,94 @@
     <p>into the deep</p>
     <p class="dates">6.19 - 6.21</p>
   </div>
-  <a href="#tickets" class="scroll-cue">dive in</a>
+  <a href="#transmission" class="scroll-cue">dive in</a>
+</section>
+
+<!-- TRANSMISSION -->
+<section id="transmission" class="transmission">
+  <div class="transmission-inner">
+
+    <div class="static-line">..ksshhh... bbzzzt... krshhh... transmission incoming...</div>
+
+    <div class="tx-block">
+      <p class="tx-captain">Passengers,</p>
+      <p class="tx-body">This is your captain speaking.</p>
+    </div>
+
+    <div class="tx-block">
+      <p class="tx-body">We've detected unusual low-frequency activity deep beneath the surface. The signal is strong. Rhythmic. Calling us back.</p>
+    </div>
+
+    <div class="tx-block">
+      <p class="tx-heading">Outer Bass 2026: INTO THE ABYSS</p>
+      <p class="tx-heading-sub">A two-night descent into music, connection, and the strange beauty that lives just below the surface.</p>
+    </div>
+
+    <div class="sonar-divider"><div class="sonar-ping"></div></div>
+
+    <div class="tx-block">
+      <p class="tx-section-head">Your expedition pass includes:</p>
+
+      <div class="tx-item">
+        <strong>Two full days of programming</strong>
+        <p>Live bands, DJs, art, yoga, breathwork, ecstatic dance, and unexpected moments in between. Sunlit folk and funk drifting through the trees... giving way to late-night bassssss reverberating through the forest floor.</p>
+      </div>
+
+      <div class="tx-item">
+        <strong>Two nights of camping</strong>
+        <p>Settle into a beautiful redwood forest + meadow venue in the Santa Cruz Mountains. Pitch your tent, wander between stages, and yes... there are showers (Oooooh, ahhhhhhhh).</p>
+      </div>
+
+      <div class="tx-item">
+        <strong>A pool (!!)</strong>
+        <p>A small but mighty oasis for daytime hangs, cooling off, and spontaneous joy.</p>
+      </div>
+
+      <div class="tx-item">
+        <strong>Two communal dinners (included)</strong>
+        <p>That's right &mdash; dinner is covered both nights. Come hungry, leave nourished. (Breakfast + lunch are on your own &mdash; plan accordingly or bring snacks to share.)</p>
+      </div>
+
+      <div class="tx-item">
+        <strong>Multiple stages, evolving environments</strong>
+        <p>From daytime grove gatherings to a transformed "midnight zone" after dark &mdash; each space has its own current to follow.</p>
+      </div>
+    </div>
+
+    <div class="sonar-divider"><div class="sonar-ping"></div></div>
+
+    <div class="tx-block">
+      <p class="tx-section-head">Lodging &amp; Arrival Notes:</p>
+
+      <div class="tx-item">
+        <strong>Standard Camping (included)</strong>
+        <p>Plenty of space to set up your tent and make a cozy home for the weekend.</p>
+      </div>
+
+      <div class="tx-item">
+        <strong>Glamping Tents (optional add-on)</strong>
+        <p>A softer landing &mdash; pre-set, more spacious, and tucked into a quieter, more tranquil pocket of the site.</p>
+      </div>
+
+      <div class="tx-item">
+        <strong>Carpooling encouraged</strong>
+        <p>Parking is limited, so we strongly encourage sharing rides where possible. Please purchase a Docking Pass if you anticipate driving your car, boat, submarine, etc. to the event.</p>
+      </div>
+    </div>
+
+    <div class="sonar-divider"><div class="sonar-ping"></div></div>
+
+    <div class="tx-block">
+      <p class="tx-heart">Outer Bass is a not-for-profit gathering, built by a community of friends, artists, and curious humans who believe in creating something special together. Your ticket supports the artists, the land, and the experience itself &mdash; nothing more, nothing less.</p>
+    </div>
+
+    <div class="tx-block tx-signoff">
+      <p class="date">June 19 &ndash; 21, 2026</p>
+      <p class="location">Santa Cruz Mountains</p>
+      <p class="descent">Prepare for descent.</p>
+    </div>
+
+  </div>
 </section>
 
 <!-- TICKETS -->
@@ -1640,6 +1940,26 @@
   for (let i = 0; i < 6; i++) depthLines.push({ x: Math.random() * W, y: Math.random() * H, len: 30 + Math.random() * 60, alpha: 0.03 + Math.random() * 0.04 });
 
   loop();
+})();
+</script>
+<script>
+// Scroll-reveal for transmission blocks
+(() => {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const delay = el.dataset.delay || 0;
+        setTimeout(() => el.classList.add('visible'), delay);
+        observer.unobserve(el);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.tx-block').forEach((block, i) => {
+    block.dataset.delay = i * 150;
+    observer.observe(block);
+  });
 })();
 </script>
 </body>
