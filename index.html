@@ -537,6 +537,30 @@
     padding: 2rem 0;
   }
 
+  .tx-lineup {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem 1.2rem;
+    margin-top: 0.4rem;
+  }
+
+  .tx-lineup span {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 300;
+    font-size: 0.85rem;
+    color: #d0e8f0;
+    letter-spacing: 0.05em;
+    text-shadow: 0 0 12px rgba(0,229,255,0.25);
+  }
+
+  .tx-lineup span.more {
+    color: var(--glow);
+    font-style: italic;
+    font-weight: 700;
+    text-shadow: 0 0 16px rgba(0,229,255,0.5);
+  }
+
   .tx-signoff {
     text-align: center;
     margin-top: 2rem;
@@ -730,7 +754,46 @@
     <div class="sonar-divider"><div class="sonar-ping"></div></div>
 
     <div class="tx-block">
+      <p class="tx-section-head">Transmissions from the deep &mdash; current lineup:</p>
+      <div class="tx-lineup">
+        <span>Airtime</span>
+        <span>Dead Nettle</span>
+        <span>DJ Arden</span>
+        <span>DJ Footstuff</span>
+        <span>Ethan Bucker Ballad</span>
+        <span>Familia de la Calle</span>
+        <span>Floratura</span>
+        <span>John Bear</span>
+        <span>Kentucky Mule</span>
+        <span>Litty D</span>
+        <span>Matt the Mac</span>
+        <span>Musidelic</span>
+        <span>My Evergreen Soul</span>
+        <span>Nick Milich</span>
+        <span>Olive Klug</span>
+        <span>Wonderchild</span>
+        <span class="more">&hellip; and more</span>
+      </div>
+    </div>
+
+    <div class="sonar-divider"><div class="sonar-ping"></div></div>
+
+    <div class="tx-block">
       <p class="tx-heart">Outer Bass is a not-for-profit gathering, built by a community of friends, artists, and curious humans who believe in creating something special together. Your ticket supports the artists, the land, and the experience itself &mdash; nothing more, nothing less.</p>
+    </div>
+
+    <div class="tx-block">
+      <p class="tx-section-head">A note from the crew:</p>
+
+      <div class="tx-item">
+        <strong>Want to contribute?</strong>
+        <p>If you want to contribute something (performance, experience, art), please reach out!</p>
+      </div>
+
+      <div class="tx-item">
+        <strong>Financial barriers?</strong>
+        <p>If this price is cost-prohibitive, please reach out to an organizer.</p>
+      </div>
     </div>
 
     <div class="tx-block tx-signoff">
