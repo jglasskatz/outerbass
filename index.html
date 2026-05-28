@@ -100,7 +100,7 @@
 
   .scroll-cue {
     position: absolute;
-    bottom: 2rem;
+    bottom: 5rem;
     left: 50%;
     transform: translateX(-50%);
     z-index: 2;
@@ -131,6 +131,54 @@
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(30px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* === LINEUP MARQUEE === */
+  .lineup-marquee {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    overflow: hidden;
+    padding: 0.95rem 0;
+    background: linear-gradient(180deg, rgba(3,7,18,0) 0%, rgba(3,7,18,0.55) 55%, rgba(3,7,18,0.92) 100%);
+    border-top: 1px solid rgba(0,229,255,0.12);
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 7%, #000 93%, transparent 100%);
+            mask-image: linear-gradient(90deg, transparent 0, #000 7%, #000 93%, transparent 100%);
+  }
+
+  .lineup-track {
+    display: inline-flex;
+    align-items: center;
+    gap: 2rem;
+    white-space: nowrap;
+    padding-left: 2rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.82rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #9ec9d4;
+    animation: lineup-scroll 90s linear infinite;
+    will-change: transform;
+  }
+
+  .lineup-track span.name {
+    text-shadow: 0 0 14px rgba(0,229,255,0.18);
+  }
+
+  .lineup-track span.dot {
+    color: var(--glow);
+    opacity: 0.45;
+  }
+
+  @keyframes lineup-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lineup-track { animation: none; }
   }
 
   /* === GAME SECTION === */
@@ -677,6 +725,42 @@
     <p class="dates">6.19 - 6.21</p>
   </div>
   <a href="#transmission" class="scroll-cue">dive in</a>
+  <div class="lineup-marquee" aria-label="Current lineup">
+    <div class="lineup-track" aria-hidden="false">
+      <span class="name">Airtime</span><span class="dot">•</span>
+      <span class="name">Ballad</span><span class="dot">•</span>
+      <span class="name">DJ Footstuff</span><span class="dot">•</span>
+      <span class="name">DJ Freshmen</span><span class="dot">•</span>
+      <span class="name">Ethan Bucker</span><span class="dot">•</span>
+      <span class="name">Familia de la Calle</span><span class="dot">•</span>
+      <span class="name">Floratura</span><span class="dot">•</span>
+      <span class="name">John Bear</span><span class="dot">•</span>
+      <span class="name">Kentucky Mule</span><span class="dot">•</span>
+      <span class="name">Litty D</span><span class="dot">•</span>
+      <span class="name">My Evergreen Soul</span><span class="dot">•</span>
+      <span class="name">Olive Klug</span><span class="dot">•</span>
+      <span class="name">Sando</span><span class="dot">•</span>
+      <span class="name">ünico</span><span class="dot">•</span>
+      <span class="name">WHOAMii</span><span class="dot">•</span>
+      <span class="name">Wonderchild</span><span class="dot">•</span>
+      <span class="name" aria-hidden="true">Airtime</span><span class="dot" aria-hidden="true">•</span>
+      <span class="name" aria-hidden="true">Ballad</span><span class="dot" aria-hidden="true">•</span>
+      <span class="name" aria-hidden="true">DJ Footstuff</span><span class="dot" aria-hidden="true">•</span>
+      <span class="name" aria-hidden="true">DJ Freshmen</span><span class="dot" aria-hidden="true">•</span>
+      <span class="name" aria-hidden="true">Ethan Bucker</span><span class="dot" aria-hidden="true">•</span>
+      <span class="name" aria-hidden="true">Familia de la Calle</span><span class="dot" aria-hidden="true">•</span>
+      <span class="name" aria-hidden="true">Floratura</span><span class="dot" aria-hidden="true">•</span>
+      <span class="name" aria-hidden="true">John Bear</span><span class="dot" aria-hidden="true">•</span>
+      <span class="name" aria-hidden="true">Kentucky Mule</span><span class="dot" aria-hidden="true">•</span>
+      <span class="name" aria-hidden="true">Litty D</span><span class="dot" aria-hidden="true">•</span>
+      <span class="name" aria-hidden="true">My Evergreen Soul</span><span class="dot" aria-hidden="true">•</span>
+      <span class="name" aria-hidden="true">Olive Klug</span><span class="dot" aria-hidden="true">•</span>
+      <span class="name" aria-hidden="true">Sando</span><span class="dot" aria-hidden="true">•</span>
+      <span class="name" aria-hidden="true">ünico</span><span class="dot" aria-hidden="true">•</span>
+      <span class="name" aria-hidden="true">WHOAMii</span><span class="dot" aria-hidden="true">•</span>
+      <span class="name" aria-hidden="true">Wonderchild</span><span class="dot" aria-hidden="true">•</span>
+    </div>
+  </div>
 </section>
 
 <!-- TRANSMISSION -->
@@ -758,17 +842,17 @@
       <div class="tx-lineup">
         <span>Airtime</span>
         <span>Ballad</span>
-        <span>DJ Arden</span>
         <span>DJ Footstuff</span>
+        <span>DJ Freshmen</span>
         <span>Ethan Bucker</span>
         <span>Familia de la Calle</span>
         <span>Floratura</span>
         <span>John Bear</span>
         <span>Kentucky Mule</span>
         <span>Litty D</span>
-        <span>Matt the Mac</span>
         <span>My Evergreen Soul</span>
         <span>Olive Klug</span>
+        <span>Sando</span>
         <span>ünico</span>
         <span>WHOAMii</span>
         <span>Wonderchild</span>
