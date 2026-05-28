@@ -148,6 +148,14 @@
             mask-image: linear-gradient(90deg, transparent 0, #000 7%, #000 93%, transparent 100%);
   }
 
+  .lineup-marquee.top {
+    bottom: auto;
+    top: 0;
+    background: linear-gradient(0deg, rgba(3,7,18,0) 0%, rgba(3,7,18,0.55) 55%, rgba(3,7,18,0.92) 100%);
+    border-top: none;
+    border-bottom: 1px solid rgba(0,229,255,0.12);
+  }
+
   .lineup-track {
     display: inline-flex;
     align-items: center;
@@ -161,6 +169,12 @@
     color: #9ec9d4;
     animation: lineup-scroll 90s linear infinite;
     will-change: transform;
+  }
+
+  /* Top track scrolls the same way but starts mid-cycle, so it never
+     shows the same names as the bottom one at the same time. */
+  .lineup-track.offset {
+    animation-delay: -45s;
   }
 
   .lineup-track span.name {
@@ -585,6 +599,24 @@
     padding: 2rem 0;
   }
 
+  .tx-email {
+    text-align: center;
+    margin-top: 1.6rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+  }
+
+  .tx-email a {
+    color: var(--glow);
+    text-decoration: none;
+    text-shadow: 0 0 12px rgba(0,229,255,0.25);
+    border-bottom: 1px solid rgba(0,229,255,0.25);
+    transition: opacity 0.2s ease;
+  }
+
+  .tx-email a:hover { opacity: 0.7; }
+
   .tx-lineup {
     display: flex;
     flex-wrap: wrap;
@@ -725,6 +757,42 @@
     <p class="dates">6.19 - 6.21</p>
   </div>
   <a href="#transmission" class="scroll-cue">dive in</a>
+  <div class="lineup-marquee top" aria-hidden="true">
+    <div class="lineup-track offset">
+      <span class="name">Airtime</span><span class="dot">•</span>
+      <span class="name">Ballad</span><span class="dot">•</span>
+      <span class="name">DJ Footstuff</span><span class="dot">•</span>
+      <span class="name">DJ Freshmen</span><span class="dot">•</span>
+      <span class="name">Ethan Bucker</span><span class="dot">•</span>
+      <span class="name">Familia de la Calle</span><span class="dot">•</span>
+      <span class="name">Floratura</span><span class="dot">•</span>
+      <span class="name">John Bear</span><span class="dot">•</span>
+      <span class="name">Kentucky Mule</span><span class="dot">•</span>
+      <span class="name">Litty D</span><span class="dot">•</span>
+      <span class="name">My Evergreen Soul</span><span class="dot">•</span>
+      <span class="name">Olive Klug</span><span class="dot">•</span>
+      <span class="name">Sando</span><span class="dot">•</span>
+      <span class="name">ünico</span><span class="dot">•</span>
+      <span class="name">WHOAMii</span><span class="dot">•</span>
+      <span class="name">Wonderchild</span><span class="dot">•</span>
+      <span class="name">Airtime</span><span class="dot">•</span>
+      <span class="name">Ballad</span><span class="dot">•</span>
+      <span class="name">DJ Footstuff</span><span class="dot">•</span>
+      <span class="name">DJ Freshmen</span><span class="dot">•</span>
+      <span class="name">Ethan Bucker</span><span class="dot">•</span>
+      <span class="name">Familia de la Calle</span><span class="dot">•</span>
+      <span class="name">Floratura</span><span class="dot">•</span>
+      <span class="name">John Bear</span><span class="dot">•</span>
+      <span class="name">Kentucky Mule</span><span class="dot">•</span>
+      <span class="name">Litty D</span><span class="dot">•</span>
+      <span class="name">My Evergreen Soul</span><span class="dot">•</span>
+      <span class="name">Olive Klug</span><span class="dot">•</span>
+      <span class="name">Sando</span><span class="dot">•</span>
+      <span class="name">ünico</span><span class="dot">•</span>
+      <span class="name">WHOAMii</span><span class="dot">•</span>
+      <span class="name">Wonderchild</span><span class="dot">•</span>
+    </div>
+  </div>
   <div class="lineup-marquee" aria-label="Current lineup">
     <div class="lineup-track" aria-hidden="false">
       <span class="name">Airtime</span><span class="dot">•</span>
@@ -878,6 +946,8 @@
         <strong>Financial barriers?</strong>
         <p>If this price is cost-prohibitive, please reach out to an organizer.</p>
       </div>
+
+      <p class="tx-email"><a href="mailto:outerbass@gmail.com">outerbass@gmail.com</a></p>
     </div>
 
     <div class="tx-block tx-signoff">
