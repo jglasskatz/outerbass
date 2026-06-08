@@ -715,6 +715,40 @@
     .tx-item { padding-left: 0.8rem; }
   }
 
+  /* === HERO FAQ LINK === */
+  .hero-faq-link {
+    position: absolute;
+    top: 1.3rem;
+    right: 1.5rem;
+    z-index: 4;
+    color: var(--glow);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 0.45rem 1rem;
+    border: 1px solid rgba(0,229,255,0.3);
+    border-radius: 4px;
+    background: rgba(3,7,18,0.4);
+    text-shadow: 0 0 12px rgba(0,229,255,0.4);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .hero-faq-link:hover {
+    background: rgba(0,229,255,0.12);
+    border-color: var(--glow);
+  }
+  @media (max-width: 600px) {
+    .hero-faq-link {
+      top: 1rem;
+      right: 1rem;
+      font-size: 0.65rem;
+      padding: 0.4rem 0.8rem;
+    }
+  }
+
   /* === FOOTER === */
   footer {
     text-align: center;
@@ -724,6 +758,19 @@
     letter-spacing: 0.15em;
     background: var(--abyss);
   }
+
+  .footer-faq {
+    display: inline-block;
+    margin-bottom: 1.2rem;
+    color: var(--glow);
+    font-size: 0.72rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    text-decoration: none;
+    text-shadow: 0 0 12px rgba(0,229,255,0.35);
+    transition: opacity 0.2s;
+  }
+  .footer-faq:hover { opacity: 0.7; }
 
   /* === MOBILE === */
   @media (max-width: 600px) {
@@ -751,6 +798,7 @@
 <section class="hero">
   <img src="ob.jpg" alt="Outer Bass" class="hero-img">
   <div class="hero-overlay"></div>
+  <a href="faq.html" class="hero-faq-link">FAQ</a>
   <div class="hero-content">
     <h1>OUTER BASS</h1>
     <p>into the deep</p>
@@ -991,7 +1039,10 @@
   </div>
 </section>
 
-<footer>&copy; OUTER BASS</footer>
+<footer>
+  <a href="faq.html" class="footer-faq">FAQ</a><br>
+  &copy; OUTER BASS
+</footer>
 
 <script>
 (() => {
@@ -1687,11 +1738,11 @@
       sub.y += sub.vy;
       sub.y = Math.max(sub.h, Math.min(H - sub.h, sub.y));
 
-      // speed ramp
-      speed = 3 + Math.floor(score / 500) * 0.5;
+      // speed ramp — continuous so it keeps accelerating as you survive
+      speed = 3 + score / 500;
 
-      // spawn
-      const spawnRate = Math.max(40, 80 - Math.floor(score / 200) * 3);
+      // spawn — density keeps climbing a bit longer before its floor
+      const spawnRate = Math.max(32, 80 - Math.floor(score / 200) * 3);
       if (frameCount % spawnRate === 0) spawnObstacle();
 
       // obstacles

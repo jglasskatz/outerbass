@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
+<title>Outer Bass — FAQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Unbounded:wght@300;700;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --abyss: #030712;
+    --deep: #0a1628;
+    --ink: #0f2040;
+    --glow: #00e5ff;
+    --glow-dim: #007a8a;
+    --bio: #39ff8f;
+    --warning: #ff3d5a;
+    --sand: #c2b99e;
+  }
+
+  html, body {
+    background: var(--abyss);
+    color: #d0e8f0;
+    font-family: 'Space Mono', monospace;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+  }
+
+  /* === SCANLINE BACKDROP === */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,229,255,0.015) 2px,
+      rgba(0,229,255,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* === HEADER === */
+  .faq-header {
+    position: relative;
+    text-align: center;
+    padding: 3.5rem 1.5rem 2.5rem;
+    background: linear-gradient(180deg, var(--abyss) 0%, var(--deep) 100%);
+  }
+
+  .back-link {
+    display: inline-block;
+    margin-bottom: 2.2rem;
+    color: var(--glow);
+    font-size: 0.72rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    text-decoration: none;
+    text-shadow: 0 0 12px rgba(0,229,255,0.4);
+    transition: opacity 0.2s;
+  }
+  .back-link:hover { opacity: 0.7; }
+
+  .faq-header .eyebrow {
+    color: var(--glow-dim);
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+
+  .faq-header h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    letter-spacing: 0.02em;
+    color: #fff;
+    text-shadow: 0 0 60px rgba(0,229,255,0.3);
+    line-height: 1;
+  }
+
+  .faq-header .subtitle {
+    margin-top: 1rem;
+    color: var(--glow-dim);
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+  }
+
+  /* === SONAR DIVIDER === */
+  .sonar-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    max-width: 700px;
+    margin: 0 auto 1rem;
+  }
+  .sonar-divider::before,
+  .sonar-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,229,255,0.15), transparent);
+  }
+  .sonar-ping {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--glow);
+    box-shadow: 0 0 12px var(--glow), 0 0 30px rgba(0,229,255,0.3);
+    animation: ping 2s ease-out infinite;
+  }
+  @keyframes ping {
+    0% { box-shadow: 0 0 12px var(--glow), 0 0 30px rgba(0,229,255,0.3); transform: scale(1); }
+    50% { box-shadow: 0 0 20px var(--glow), 0 0 60px rgba(0,229,255,0.4); transform: scale(1.3); }
+    100% { box-shadow: 0 0 12px var(--glow), 0 0 30px rgba(0,229,255,0.3); transform: scale(1); }
+  }
+
+  /* === FAQ === */
+  .faq-section {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2.5rem 1.5rem 5rem;
+    background: linear-gradient(180deg, var(--deep) 0%, var(--abyss) 100%);
+  }
+
+  .faq-list {
+    width: 100%;
+    max-width: 700px;
+  }
+
+  .faq-item {
+    border-bottom: 1px solid rgba(0,229,255,0.1);
+  }
+  .faq-item:first-child {
+    border-top: 1px solid rgba(0,229,255,0.1);
+  }
+
+  .faq-item summary {
+    list-style: none;
+    cursor: pointer;
+    position: relative;
+    padding: 1.1rem 2.4rem 1.1rem 0;
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 300;
+    font-size: 0.9rem;
+    color: #d0e8f0;
+    letter-spacing: 0.02em;
+    transition: color 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary:hover { color: var(--glow); }
+  .faq-item[open] summary {
+    color: var(--glow);
+    text-shadow: 0 0 16px rgba(0,229,255,0.25);
+  }
+
+  .faq-item summary::after {
+    content: '+';
+    position: absolute;
+    right: 0.3rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--glow);
+    font-family: 'Space Mono', monospace;
+    font-size: 1.3rem;
+    line-height: 1;
+    opacity: 0.65;
+    transition: transform 0.25s ease, opacity 0.2s;
+  }
+  .faq-item[open] summary::after {
+    transform: translateY(-50%) rotate(45deg);
+    opacity: 1;
+  }
+
+  .faq-answer {
+    color: #8ab4c4;
+    font-size: 0.82rem;
+    line-height: 1.8;
+    padding: 0 0 1.3rem;
+    animation: faqReveal 0.35s ease-out;
+  }
+  .faq-answer a {
+    color: var(--glow);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(0,229,255,0.25);
+    transition: opacity 0.2s ease;
+  }
+  .faq-answer a:hover { opacity: 0.7; }
+
+  .faq-answer p { margin-bottom: 0.85rem; }
+  .faq-answer > *:last-child { margin-bottom: 0; }
+
+  .faq-answer strong {
+    display: block;
+    color: var(--glow);
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 1.1rem 0 0.5rem;
+    text-shadow: 0 0 14px rgba(0,229,255,0.2);
+  }
+
+  .faq-answer ul {
+    list-style: none;
+    margin: 0.2rem 0 0.85rem;
+    padding: 0;
+  }
+  .faq-answer li {
+    position: relative;
+    padding-left: 1.1rem;
+    margin-bottom: 0.4rem;
+  }
+  .faq-answer li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: var(--glow);
+    opacity: 0.5;
+  }
+
+  @keyframes faqReveal {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* === FOOTER CTA === */
+  .faq-foot {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    margin-top: 3.5rem;
+  }
+  .faq-foot .tickets-cta {
+    display: inline-block;
+    color: var(--glow);
+    border: 1px solid rgba(0,229,255,0.3);
+    border-radius: 4px;
+    padding: 0.7rem 1.6rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    text-shadow: 0 0 12px rgba(0,229,255,0.4);
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .faq-foot .tickets-cta:hover {
+    background: rgba(0,229,255,0.1);
+    border-color: var(--glow);
+  }
+
+  footer {
+    text-align: center;
+    padding: 2rem;
+    color: #1e3a4a;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    background: var(--abyss);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .faq-answer { animation: none; }
+    .sonar-ping { animation: none; }
+  }
+
+  @media (max-width: 600px) {
+    .faq-header { padding: 2.5rem 1rem 2rem; }
+    .faq-section { padding: 2rem 1rem 3.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="faq-header">
+  <a href="index.html" class="back-link">&larr; Outer Bass</a>
+  <p class="eyebrow">into the deep</p>
+  <h1>FAQ</h1>
+  <p class="subtitle">signals from the surface</p>
+</header>
+
+<div class="sonar-divider"><div class="sonar-ping"></div></div>
+
+<!-- FAQ -->
+<section class="faq-section">
+  <div class="faq-list">
+
+    <details class="faq-item">
+      <summary>Are there single day tickets available?</summary>
+      <div class="faq-answer">
+        <p>No, we are only selling 3-day/2-night tickets. We encourage everyone to stay for the full experience! There will be music and programming from 2 PM on Friday, June 19 until 12:30 PM on Sunday, June 21.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>Can I buy tickets the day of?</summary>
+      <div class="faq-answer">
+        <p>No! Sales end on Thursday, June 18, though we expect the festival will sell out before then. So get your ticket soon!</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>When can I arrive and leave?</summary>
+      <div class="faq-answer">
+        <p>We strongly recommend staying on site for the full time to get the full Outer Bass experience! However, we understand that may not be possible for everyone. Please adhere to the following guidance as much as possible:</p>
+        <strong>Arrival</strong>
+        <p>Gates are open the following days/times so that we can check in you and your vehicle. Please carpool! Bring your ID.</p>
+        <ul>
+          <li>Friday, June 19: 11 AM to 6 PM.</li>
+          <li>Saturday, June 20: between 10 AM to 6 PM.</li>
+        </ul>
+        <p>Please note: Entry gates are closed beginning at dinner time (6 PM) to cultivate a closed container and to allow our volunteers and organizers to eat, enjoy the festival, and focus efforts on the festival experience.</p>
+        <p>If you cannot arrive during these windows, please email <a href="mailto:outerbass@gmail.com">outerbass@gmail.com</a> with your planned arrival time before Thursday, June 18 at 12 PM so we can plan accordingly.</p>
+        <p>Artists, please arrive by dinner time. We would love to welcome and feed you dinner before you play.</p>
+        <strong>Departure</strong>
+        <p>You may leave at any point. However, please note, it is likely that your car will be blocked in. If you think you&rsquo;ll need to leave, we ask for you to check in with our greeters when parking to make sure you are well situated. We recommend planning to stay until Sunday departure to ease parking conflicts when possible.</p>
+        <p>Campers must leave festival grounds by Sunday at 5 PM.</p>
+        <strong>Re-entry</strong>
+        <p>You may exit and re-enter if needed, however we do urge your attendance for the entirety of the festival when possible. You will still need to adhere to the above arrival instructions.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>What is the location like? What will the weather be like?</summary>
+      <div class="faq-answer">
+        <p>It&rsquo;s a forested private property in the Santa Cruz mountains with areas of shade and areas of sun. The property is on the side of the mountain, with hand-built staircases and mountain pathways. The terrain may be rough or uneven in places so we recommend sturdy shoes and lights at night.</p>
+        <p>Expect warm to hot days, chilly evenings, and cold nights. You can look up the weather forecast for Boulder Creek, CA, for a detailed forecast.</p>
+        <p>Specific location/address will be released to ticket holders in June to protect the privacy of the venue.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>How does camping work? Can I camp in my car or van?</summary>
+      <div class="faq-answer">
+        <p>All festival passes include tent camping (tent only &mdash; no vehicle). If you drive a car, you must purchase a Docking Pass to park it or to sleep in your vehicle. If you wish to sleep in your car or van, you will be directed to a separate parking lot designated for vehicle camping. There is no off-site parking, so every vehicle must have a Docking Pass.</p>
+        <strong>Tent camping</strong>
+        <p>There are two designated camping areas for tents only &mdash; the Seamount and Plains. They are up the hill from parking areas. The Plains camping area is closer to the parking area and is more central/social. The Seamount camping area sits atop a hill above the main area, features sunshine and a beautiful view, and it&rsquo;s about a 5&ndash;10 minute hike uphill from where you will park your car. For both campsites, please plan to carry your gear or bring a wagon with sturdy wheels.</p>
+        <strong>Vehicle camping</strong>
+        <p>There is one designated camping area for vehicle sleeping below the main festival grounds, a short walk to the festival. There are limited vehicle camping spaces and limited flat ground for vehicles, so we encourage tent camping where possible. Bring blocks for your vehicle if you wish to level it. There is no space for RVs or trailers, so limit your vehicle size to a van or pickup truck.</p>
+        <strong>Glamping</strong>
+        <p>We have glamping tents available for purchase. The glamping area is up the hill in the forest beyond the grounds. With a glamping pass, you may drive to and park in the glamping area (you still need a Docking Pass).</p>
+        <p>If you are getting a ride from a friend or taking a rideshare app, you may be dropped off at the grounds without a Docking Pass.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>What meals are provided? Can I buy any food or drinks on-site?</summary>
+      <div class="faq-answer">
+        <p>We are providing communal dinners both nights (Friday and Saturday) at 6:15 PM, included in the cost of the ticket.</p>
+        <strong>Friday</strong>
+        <ul>
+          <li>Vegan chili, cornbread muffins, mixed greens salad</li>
+          <li>Vegan/gf cornbread available upon request &mdash; please reach out in advance.</li>
+        </ul>
+        <strong>Saturday</strong>
+        <ul>
+          <li>Red lentil dal, herbed rice, and coconut stewed greens</li>
+          <li>Everything vegan and gluten free</li>
+        </ul>
+        <p>For the communal meals, disposable bowls and utensils will be provided. Drinks will not be provided so please BYO.</p>
+        <p>There are several potable water spigots scattered around the property, bring your own containers.</p>
+        <p>We will not have vendors on site, so please bring your own breakfast, lunch, snacks, and drinks, as well as your own kitchen gear. No glass bottles or containers! You can keep personal food in the camping area in/near your tent but be mindful that we are in the woods so there may be critters around! Bringing something critter-proof to store food in is a good idea. We encourage coordinating/sharing cooking gear with friends!</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>Will washing stations be available to wash our dishes?</summary>
+      <div class="faq-answer">
+        <p>Unfortunately, we won&rsquo;t have shared washing stations for dirty dishes. We recommend soap/water in a spray bottle with towels/paper towels or a small contained washing station.</p>
+        <p>There will be trash and recycling available on the property but please bring your own personal trash bags if you want trash available at your camping area.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>Is there potable water on-site?</summary>
+      <div class="faq-answer">
+        <p>Yes, there are several potable water spigots around the property. Bring your own reusable water bottles or jugs to fill.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>What is the bathroom situation?</summary>
+      <div class="faq-answer">
+        <p>There will be several porta potties. You may want to bring a toilet paper roll and hand sanitizer as backup.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>Is there cell service on the property?</summary>
+      <div class="faq-answer">
+        <p>There is limited cell service in some areas of the property and some areas with no service.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>When will the schedule be released?</summary>
+      <div class="faq-answer">
+        <p>The schedule will be released in an email before the event begins.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>What should I bring to the festival?</summary>
+      <div class="faq-answer">
+        <ul>
+          <li>Camping gear &mdash; sleeping bag, sleeping pad, tent, pillow</li>
+          <li>Camp chair</li>
+          <li>Picnic blanket, yoga mat, or towel for the ground (especially for daytime programming like breathwork, yoga, sound bath, etc.)</li>
+          <li>Food and drinks</li>
+          <li>Reusable plate/bowl, cup, utensils</li>
+          <li>Towels/paper towels and spray bottle to wash your kitchen stuff (or small contained camp sink setup)</li>
+          <li>Cooler (no ice will be available for sale so please plan accordingly!)</li>
+          <li>Enclosed propane stove is allowed if you plan to cook your own breakfast or lunch</li>
+          <li>Personal trash bags</li>
+          <li>Bathing suit for the pool!</li>
+          <li>Towel, shampoo, body wash for the shower if you choose to use it</li>
+          <li>Bug spray!</li>
+          <li>Portable charger(s) for phone</li>
+          <li>Ear plugs for music and sleeping</li>
+          <li>Headlamp for porta potties and lantern or string lights for your camping setup</li>
+          <li>Toiletries</li>
+          <li>Hiking shoes, boots, or sturdy shoes are recommended</li>
+          <li>Tapestries for vibes</li>
+          <li>Your finest deep sea-themed outfits?!</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>What can I not bring to the festival?</summary>
+      <div class="faq-answer">
+        <ul>
+          <li>Generators of any kind</li>
+          <li>Sound systems</li>
+          <li>Weapons</li>
+          <li>Glass bottles or glass containers</li>
+          <li>Motorized vehicles for personal use</li>
+          <li>Pets</li>
+          <li>Illegal drugs of any kind</li>
+        </ul>
+        <p>Due to high fire danger, all burning is prohibited, including fireworks, campfires, BBQs, candles, and fire dancing. Contained propane stoves are ok.</p>
+      </div>
+    </details>
+
+  </div>
+
+  <div class="faq-foot">
+    <a href="index.html#tickets" class="tickets-cta">Get Tickets &rarr;</a>
+  </div>
+</section>
+
+<footer>&copy; OUTER BASS</footer>
+
+</body>
+</html>
